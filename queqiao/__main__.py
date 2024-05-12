@@ -33,33 +33,23 @@ def is_file_written(directory,file, timeout=10):
         time_elapsed += 5
     return False
 
-def list_files_in_directory(directory, end=".iq.tdms"):
-    #print("chenrj list_files_in_directory 1 ")
+def list_files_in_directory(directory, end, check_time):
     try:
         files0 = os.listdir(directory)
         files0.sort()  # Sort the list in place alphabetically
     except FileNotFoundError:
         # If the directory doesn't exist, return an empty list
         files0 = []
-    #print("chenrj list_files_in_directory 2 ")
     files=[]
-    #print("list_files_in_directory ",len(files0))
     for i in range(0, len(files0)):
-        #print("chenrj list_files_in_directory 2-1 ")
         if i <len(files0) - 2:
             if files0[i].endswith(end):  # Check if the file has the .tdms extension
                 files.append(files0[i])
         else:
-            #if they are the last two files
-            #print("chenrj list_files_in_directory 4 files0[i] ",files0[i])
-            #print("files0",files0)
-            if is_file_written(directory,files0[i],15) and files0[i].endswith(end): # bug here.
+            if is_file_written(directory,files0[i],check_time) and files0[i].endswith(end): # bug here.
                 files.append(files0[i])
-    #print("chenrj list_files_in_directory 3 ")
     sorted_files = sorted(files)  # Sort files by name
-    #print("chenrj list_files_in_directory 4 sorted_files=",sorted_files)
     return sorted_files
-    #return files
     
 def browse_folder_and_update_list_filebox(folder_entry_ntcap, folder_entry_luster, default_path_ntcap, default_path_luster, file_listbox, ssh, file_listbox_luster, analyzed_files_name="synced_files_iq.txt",end=".iq.tdms"):
     #print("chenrj ...0")
@@ -191,14 +181,15 @@ def set_listbox_iterm_color(file_listbox, file, color="green"):
 
 def sync_files_worker_iq(default_path_ntcap_iq,default_path_luster_iq, file_listbox_iq,file_listbox_sc,start_button,should_stop_sync,elapsed_times_iq, hostname, username, keyfilename, ssh, file_listbox_luster_iq,synced_files_iq,synced_files_iq_end):
     while not should_stop_sync[0]:
-        time.sleep(5)
+        time.sleep(1)
         print("should_stop_sync[0] = ",should_stop_sync[0])
         if default_path_ntcap_iq:
         
             update_file_list(file_listbox_iq,default_path_ntcap_iq,synced_files_iq,synced_files_iq_end)# Update the file list with the new directory
+            update_file_list_ssh(file_listbox_luster_iq, ssh, default_path_luster_iq,"","")
             
             synced_files = get_synced_files(synced_files_iq)        
-            files = list_files_in_directory(default_path_ntcap_iq,synced_files_iq_end)
+            files = list_files_in_directory(default_path_ntcap_iq,synced_files_iq_end,15)
             for file in files:
                 if should_stop_sync[0]:  # Check if user wants to stop syncing
                     break
@@ -240,12 +231,14 @@ def sync_files_worker_iq(default_path_ntcap_iq,default_path_luster_iq, file_list
 
 def sync_files_worker_sc(default_path_ntcap_sc, default_path_luster_sc ,file_listbox_iq, file_listbox_sc,start_button,should_stop_sync, hostname, username, keyfilename, ssh, file_listbox_luster_sc, synced_files_sc,synced_files_sc_end):
     while not should_stop_sync[0]:
-        time.sleep(5)
+        time.sleep(1)
         ################ sc #################################################
         if default_path_ntcap_sc:
             update_file_list(file_listbox_sc,default_path_ntcap_sc,synced_files_sc,synced_files_sc_end)# Update the file list with the new directory
+            update_file_list_ssh(file_listbox_luster_sc, ssh, default_path_luster_sc,"","")
+            
             synced_files = get_synced_files(synced_files_sc)        
-            files = list_files_in_directory(default_path_ntcap_sc,synced_files_sc_end)
+            files = list_files_in_directory(default_path_ntcap_sc,synced_files_sc_end,15)
             for file in files:
                 if should_stop_sync[0]:  # Check if user wants to stop syncing
                     break
@@ -416,11 +409,8 @@ def stop_sync(stop_button,start_button,folder_entry_ntcap_iq,folder_entry_luster
     stop_sync_worker_thread.start()
     
 def update_file_list(file_listbox,directory,synced_files_name="synced_files_iq.txt",end=".iq.tdms"):
-    #print("update_file_list start!")
 
-    files = list_files_in_directory(directory,end)
-    #print("directory ",directory)
-    #print("files ",files)
+    files = list_files_in_directory(directory,end,0)
     file_listbox.delete(0, tk.END)
     scroll_position=0
     
@@ -435,7 +425,6 @@ def update_file_list(file_listbox,directory,synced_files_name="synced_files_iq.t
             set_listbox_iterm_color(file_listbox, file, "green")
     # Scroll to the last item
     file_listbox.yview(tk.END)
-    #print("update_file_list completed!")
     
 def update_file_list_ssh(file_listbox, ssh, directory, synced_files_name="synced_files_iq.txt", end=".iq.tdms"):
     #print("chenrj ... ",update_file_list_ssh)
