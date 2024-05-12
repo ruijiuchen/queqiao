@@ -14,7 +14,7 @@ def is_file_written(directory,file, timeout=10):
         timeout (int): The maximum time to wait (in seconds) for the file to stabilize.
     Returns:
         bool: True if the file has been written and its size remains constant; False otherwise.
-    """
+    """ 
     file_path = directory + "/" + file
     if not os.path.exists(file_path):
         return False
