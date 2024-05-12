@@ -1,0 +1,18 @@
+# pathsettings_GSI.toml
+
+[paths]
+luster_hostname = "***"	
+luster_username = "***"
+luster_keyfilename = "***"
+default_path_ntcap_iq_label="RSA01(NAS):"
+default_path_ntcap_iq  = "/mnt/ntcap-data1/E0018/RSA01"
+default_path_luster_iq_label="RSA01(luster):" 
+default_path_luster_iq = "***"
+synced_files_iq = "synced_files_rsa01.txt"
+synced_files_iq_end = ".tiq"
+default_path_ntcap_sc_label="RSA02(NAS):"
+default_path_ntcap_sc  = "/mnt/ntcap-data1/E0018/RSA02"
+default_path_luster_sc_label="RSA02(luster):"
+default_path_luster_sc = "***"
+synced_files_sc = "synced_files_rsa02.txt"
+synced_files_sc_end = ".tiq"                                                                                                                                     
