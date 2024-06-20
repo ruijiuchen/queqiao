@@ -6,6 +6,7 @@ import time
 import threading
 import paramiko
 import sys
+max_show_files = 600  
 def is_file_written(directory,file, timeout=10):
     """
     Check if a file has been written and its size remains constant for a certain period.    
@@ -209,8 +210,6 @@ def sync_files_worker_iq(default_path_ntcap_iq,default_path_luster_iq, file_list
                         synced_files_file = synced_files_iq
                         new_synced_files_file = add_synced_file(synced_files_file,default_path_ntcap_iq, file, elapsed_time)
                         command = f"rsync -avz  {new_synced_files_file} {username}@{hostname}:{default_path_luster_iq}/{synced_files_file}"
-                        #print("chenrj command = ", command)
-                        #command = f"rsync -avz  synced_files_iq.txt ../analyze_iq_sc"
                         subprocess.run(command, shell=True, check=True)
                         
                         # Update the listbox item color
@@ -219,7 +218,8 @@ def sync_files_worker_iq(default_path_ntcap_iq,default_path_luster_iq, file_list
                         current_file_name=file
                         current_file_index = files.index(current_file_name) if current_file_name in files else None
                         if current_file_index is not None:
-                            scroll_position = max(0, (current_file_index - 2) / len(files))  # You might want to adjust the offset
+                            # scroll_position = max(0, (current_file_index - 2) / len(files))  # You might want to adjust the offset
+                            scroll_position = max(0, (current_file_index - 2 - (len(files) - max_show_files)) / max_show_files) 
                             file_listbox_iq.yview_moveto(scroll_position)
                         #update_file_list_ssh(file_listbox_luster_iq, ssh, default_path_luster_iq,"","")
                         #update_file_list(file_listbox_iq,default_path_ntcap_iq,synced_files_iq,synced_files_iq_end)# Update the file list with the new directory
@@ -266,7 +266,8 @@ def sync_files_worker_sc(default_path_ntcap_sc, default_path_luster_sc ,file_lis
                         current_file_name=file
                         current_file_index = files.index(current_file_name) if current_file_name in files else None
                         if current_file_index is not None:
-                            scroll_position = max(0, (current_file_index - 2) / len(files))  # You might want to adjust the offset
+                            # scroll_position = max(0, (current_file_index - 2) / len(files))  # You might want to adjust the offset
+                            scroll_position = max(0, (current_file_index - 2 - (len(files) - max_show_files)) / max_show_files)
                             file_listbox_sc.yview_moveto(scroll_position)
                         #update_file_list_ssh(file_listbox_luster_sc, ssh, default_path_luster_sc,"","")
                         #update_file_list(file_listbox_sc,default_path_ntcap_sc,synced_files_sc,synced_files_sc_end)# Update the file list with the new directory
@@ -414,9 +415,15 @@ def update_file_list(file_listbox,directory,synced_files_name="synced_files_iq.t
     file_listbox.delete(0, tk.END)
     scroll_position=0
     
-    for file in files:
+    #for file in files:
+    #    file_listbox.insert(tk.END, file)
+    # Filter files based on the specified file extension (e.g., ".iq.tdms")
+    filtered_files = [file for file in files if file.endswith(end)]
+    print("chenrj ...")
+    # Insert the last 1000 files into the file_listbox
+    for file in filtered_files[-max_show_files:]:      
         file_listbox.insert(tk.END, file)
-        
+                                         
     synced_files = get_synced_files(synced_files_name)
     
     for file in files:
@@ -441,7 +448,7 @@ def update_file_list_ssh(file_listbox, ssh, directory, synced_files_name="synced
         #print("chenrj ... files ",files)
         # Update the file list in the file_listbox
         file_listbox.delete(0, tk.END)
-        for file in files:
+        for file in files[-max_show_files:]:
             file_listbox.insert(tk.END, file)
         # Scroll to the last item
         file_listbox.yview(tk.END)
@@ -554,15 +561,11 @@ def main():
     default_path_luster_sc_label = paths_config["default_path_luster_sc_label"]     
     default_path_luster_sc = paths_config["default_path_luster_sc"]
 
-    #synced_files_iq = "synced_files_rsa01.txt"
-    #synced_files_iq_end = ".tiq"
-    #synced_files_sc = "synced_files_rsa02.txt"
-    #synced_files_sc_end = ".tiq"
     synced_files_iq = paths_config["synced_files_iq"]
     synced_files_iq_end = paths_config["synced_files_iq_end"]   
     synced_files_sc = paths_config["synced_files_sc"]
     synced_files_sc_end = paths_config["synced_files_sc_end"]   
-
+    # max_show_files = paths_config["max_show_files"]
     try:
         # Create an SSH client
         ssh = paramiko.SSHClient()
